@@ -5,18 +5,30 @@
 
     <!-- 우측 헤더 영역 -->
     <section class="right-container">
+      <div :class="modalState" class="login_modal">
+        <h2>Login</h2>
+        <input type="text" :value="username" @keyup.enter="onModal" />
+        <br /><br />
+        <button @click="onModal">입장</button>
+      </div>
+      <button class="login_icon" @click="onModal">로그인</button>
       <Header></Header>
 
       <!-- 우측 하단 메인의 대화창 영역 -->
-      <section class="main">
+      <section class="main" ref="main">
         <ul class="content">
-          <li><span>유저가 말함</span> <span>보낸시간</span></li>
-          <li><span>내가 말함</span> <span>보낸시간</span></li>
+          <li v-for="(item, index) in message.messages" :key="index" :class="message.target[index]">
+            <div class="content_profile">
+              <div class="content_img"></div>
+            </div>
+            <span class="content_message">{{ item['messages'] }}</span>
+            <span class="content_createDate">{{ item['date'] }}</span>
+          </li>
         </ul>
       </section>
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
-        <input type="text" @keyup.enter="sendMessage" :v-model="message.userInput" />
+        <input type="text" v-model="message.userInput" />
         <button class="submit_btn" @click="sendMessage">
           <svg
             style="fill: white"
@@ -37,22 +49,71 @@
 
 <script lang="ts" setup>
 import { io } from 'socket.io-client'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
 
 const socket = io('http://localhost:3000')
 
-const message = reactive({
+const username = ref('익명')
+const modalState = ref('modal_off')
+
+interface Message {
+  messages: [
+    {
+      id: string
+      messages: string
+      username: string
+      date: string
+    }
+  ]
+  userInput: string
+  target: string[]
+}
+
+const message: Message = reactive({
   messages: [],
-  userInput: ''
+  userInput: '',
+  target: []
 })
 
 function sendMessage() {
   console.log('메시지를 보냈다.')
-  socket.emit('send', '전달되는지 확인')
+  socket.emit('send', { message: message.userInput, username })
+}
+
+socket.on('content', (content) => {
+  message.messages = content
+  console.log(content)
+  targetUser(content)
+})
+
+// 해당 유저가 본인인지 상대방인지 구분하는 함수
+function targetUser(content: string[]) {
+  const map = content.map((data: any, i) => {
+    const targetUser = data.username === username.value ? 'me' : 'others'
+    return targetUser
+  })
+  message.target = map
+
+  const timeout = setTimeout(() => {
+    document.querySelector('.main')?.scrollTo({ top: 10000000 })
+    message.userInput = ''
+  }, 10)
+}
+
+function onModal() {
+  if (modalState.value === 'modal_off') {
+    modalState.value = 'modal_on'
+  } else {
+    modalState.value = 'modal_off'
+  }
 }
 </script>
+
+
+
+
 <style scoped>
 .container {
   display: flex;
@@ -76,7 +137,11 @@ li {
 .main {
   border-radius: 20px;
   margin: 10px 0;
-  height: 100%;
+  height: 65%;
+  overflow: hidden scroll;
+}
+.main::-webkit-scrollbar {
+  width: 2px;
 }
 
 /* form ui */
@@ -120,5 +185,129 @@ li {
 .user_input_form button:hover {
   box-shadow: inset 300px -300px 5px 2px rgb(49, 96, 213);
   cursor: pointer;
+}
+
+/* 대화 메시지(본인/타인) UI */
+
+/* 
+            <span class="content_username">{{ item['username'] }}</span>
+            <span class="content_message">{{ item['messages'] }}</span>
+            <span class="content_createDate">{{ item['date'] }}</span>
+            <span class="content_target">{{ message.target[index] }}</span>
+*/
+
+/* 나 */
+.me {
+  display: flex;
+  min-width: 230px;
+  background: rgb(70, 119, 245);
+  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.518);
+  max-width: 70%;
+  position: relative;
+  right: -15%;
+  padding: 20px;
+  border-radius: 14px;
+  margin: 30px 0;
+  border-end-end-radius: 2px;
+}
+
+.me .content_profile {
+  border-radius: 50%;
+  position: absolute;
+  right: -70px;
+  background: rgb(90, 79, 79);
+  width: 60px;
+  top: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: black;
+  height: 60px;
+}
+
+.me .content_createDate {
+  position: absolute;
+  right: 0;
+  bottom: -23px;
+}
+
+/* 상대방 */
+.others {
+  display: flex;
+  max-width: 70%;
+  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.518);
+  position: relative;
+  right: -6%;
+  background: #393e50;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 30px 0;
+  border-bottom-left-radius: 2px;
+}
+
+.others .content_profile {
+  position: absolute;
+  left: -70px;
+  background: white;
+  width: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: black;
+  height: 60px;
+}
+
+.content_profile .content_img {
+  background-image: url('../public/avatar.png');
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  border-radius: 3px;
+  height: 100%;
+}
+
+/* 로그인 모달 창 */
+
+.login_modal {
+  position: fixed;
+  visibility: hidden;
+  right: 50%;
+  left: 50%;
+  box-shadow: 10px 10px 5px 2px rgba(0, 0, 0, 0.28);
+  border-radius: 20px;
+  background: #6785ff;
+
+  transition: 1s;
+  width: 300px;
+  height: 200px;
+}
+.modal_off {
+  opacity: 0;
+}
+
+.modal_on {
+  visibility: visible;
+  transform: translate(-50%, 40px);
+  opacity: 1;
+}
+
+/* 로그인 모달 인풋 */
+.login_modal h2 {
+  margin-top: 1.5rem;
+}
+.login_modal input {
+  box-shadow: inset 0 0 5px 2px black;
+  transition: 0.5s ease-in-out;
+  padding: 20px;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.login_modal input:focus {
+  box-shadow: inset 300px 0 0 0 goldenrod;
+}
+
+/* 로그인 아이콘 */
+.login_icon {
+  position: fixed;
+  right: 5px;
 }
 </style>
