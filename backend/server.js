@@ -47,6 +47,7 @@ io.on("connection", (socket) => {
       socket.join(rooms[room]);
       console.log(socket.rooms);
 
+      
       messageList.push({
         id: socket.client.id,
         messages: messages.message,
