@@ -7,51 +7,16 @@
             ><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
               <path
                 d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
-              /></svg
-          ></label>
+              />
+            </svg>
+          </label>
           <input type="text" id="user_search" />
         </div>
         <ul class="aside_userlist">
-          <li>
+          <li v-for="(info, i) in userInfo" :key="i">
             <img src="" alt="프로필" class="profile" width="50" height="50" />
             <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
-            </div>
-          </li>
-          <li>
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
-            <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
-            </div>
-          </li>
-          <li>
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
-            <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
-            </div>
-          </li>
-          <li>
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
-            <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
-            </div>
-          </li>
-          <li>
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
-            <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
-            </div>
-          </li>
-          <li>
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
-            <div>
-              <p>유저이름</p>
-              <p>상태메시지</p>
+              <p style="margin: 15px 0 0 0">{{ info.username }}</p>
             </div>
           </li>
         </ul>
@@ -70,15 +35,22 @@
 </template>
 
 <script lang="ts">
-import { reactive, ref } from 'vue'
-
+import { reactive, ref, toRef } from 'vue'
+type userInfoType = {
+  username: string
+}
 export default {
-  setup() {
+  props: {
+    userInfo: Array
+  },
+  setup(props, context) {
+    toRef(props)
+
     const displayState = reactive({
-      display: true
+      display: false
     })
 
-    let display = ref('on')
+    let display = ref('off')
 
     function offDisplay() {
       display.value = 'off'
@@ -95,11 +67,14 @@ export default {
       onDisplay,
       displayState,
       display
+      // userInfo
     }
   }
 }
 </script>
 <style scoped>
+
+/* 컴포넌트 전체 컨테이너 */
 .outer_container {
   opacity: 0.9;
 
@@ -114,6 +89,8 @@ export default {
 li {
   list-style: none;
 }
+
+/* 내부 컨테이너 */
 .aside {
   box-shadow: 2px 2px 5px 1px rgb(5, 5, 5);
   position: relative;

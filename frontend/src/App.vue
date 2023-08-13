@@ -1,18 +1,21 @@
 <template>
   <div class="container">
     <!-- 좌측 유저 목록 및 검색 영역 -->
-    <Aside></Aside>
+    <Aside :userInfo="message.uid"></Aside>
+    <!-- <Login :username="username" @dataToParent="dataToChild"/> -->
 
     <!-- 우측 헤더 영역 -->
     <section class="right-container">
+      <!-- 로그인 창 -->
       <div :class="modalState" class="login_modal">
         <h2>Login</h2>
-        <input type="text" :value="username" @keyup.enter="onModal" />
+        <input type="text" minlength="2" maxlength="4" v-model="username" @keyup.enter="onModal" />
         <br /><br />
         <button @click="onModal">입장</button>
       </div>
-      <button class="login_icon" @click="onModal">로그인</button>
-      <Header></Header>
+      <button class="login_icon" @click="login">로그인</button>
+      <RoomVue @choice="roomChoice" @roomLave="roomLeave" />
+      <Header :username="username"></Header>
 
       <!-- 우측 하단 메인의 대화창 영역 -->
       <section class="main" ref="main">
@@ -20,9 +23,10 @@
           <li v-for="(item, index) in message.messages" :key="index" :class="message.target[index]">
             <div class="content_profile">
               <div class="content_img"></div>
+              <span style="color: gray">{{ item.username }}</span>
             </div>
-            <span class="content_message">{{ item['messages'] }}</span>
-            <span class="content_createDate">{{ item['date'] }}</span>
+            <span class="content_message">{{ item.messages }}</span>
+            <span class="content_createDate">{{ item.date }}</span>
           </li>
         </ul>
       </section>
@@ -52,45 +56,60 @@ import { io } from 'socket.io-client'
 import { reactive, ref } from 'vue'
 import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
+import Login from './components/Login.vue'
+import RoomVue from './components/RoomVue.vue'
 
 const socket = io('http://localhost:3000')
 
 const username = ref('익명')
 const modalState = ref('modal_off')
 
-interface Message {
-  messages: [
-    {
-      id: string
-      messages: string
-      username: string
-      date: string
-    }
-  ]
+type dType = {
+  id: string
+  messages: string
+  username: string
+  date: string
+}
+
+type Message = {
+  messages: dType[]
   userInput: string
   target: string[]
+  uid: any[]
+  userList: string[]
 }
 
-const message: Message = reactive({
-  messages: [],
+const message = reactive<Message>({
+  messages: [] as any,
   userInput: '',
-  target: []
+  target: [],
+  uid: [],
+  userList: []
 })
 
+const room = reactive({
+  index: 0,
+  name: 'room1'
+})
+
+// 방선택하는 함수
+function roomChoice(roomInfo: { index: number; name: string }) {
+  room.index = roomInfo.index
+  room.name = roomInfo.name
+  
+  socket.emit('roomChoice', room.index)
+}
+
+// 서버에 메시지를 전송하는 함수
 function sendMessage() {
   console.log('메시지를 보냈다.')
-  socket.emit('send', { message: message.userInput, username })
+  console.log(room.name)
+  socket.emit(`${room.name}`, { message: message.userInput, username:username.value,group:room.name })
 }
 
-socket.on('content', (content) => {
-  message.messages = content
-  console.log(content)
-  targetUser(content)
-})
-
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
-function targetUser(content: string[]) {
-  const map = content.map((data: any, i) => {
+function targetUser(content: dType[]) {
+  const map = content.map((data: dType) => {
     const targetUser = data.username === username.value ? 'me' : 'others'
     return targetUser
   })
@@ -102,6 +121,7 @@ function targetUser(content: string[]) {
   }, 10)
 }
 
+// 로그인 창을 on/off 하는 함수
 function onModal() {
   if (modalState.value === 'modal_off') {
     modalState.value = 'modal_on'
@@ -109,10 +129,47 @@ function onModal() {
     modalState.value = 'modal_off'
   }
 }
+// Uid를 생성하는 함수
+function createUid(content: dType[]) {
+  const uid: string[] = []
+  message.uid = content.filter((d: dType, i) => {
+    uid.push(content[i].id)
+    return uid.indexOf(d.id) === i
+  })
+  console.log(message.uid)
+}
+
+function gernateUNick(content: dType[]) {
+  for (let nick of content) {
+    message.userList.push(nick.username)
+  }
+}
+
+// 로그인 함수로 로그인 시 서버와 소켓을 연결한다.
+function login() {
+  onModal()
+  if (message.userList.includes(username.value)) {
+    return alert('중복된 닉네임입니다. ')
+  } else {
+    // 서버와 클라이언트 소켓을 연결
+    socket.on(`${room.name}`, (content) => {
+      console.log("서버에서 받은:",content)
+      message.messages = content
+      gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
+      createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
+      targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
+    })
+  }
+}
+
+const dataToChild = (data: string) => {
+  console.log(data)
+}
+
+const roomLeave=(i:number)=>{
+  socket.emit('leave',i)
+}
 </script>
-
-
-
 
 <style scoped>
 .container {
@@ -146,8 +203,6 @@ li {
 
 /* form ui */
 .user_input_form {
-  box-shadow: 2px 2px 5px 1px rgb(5, 5, 5);
-  background: #303346;
   border-radius: 20px;
   padding: 20px;
   position: fixed;
@@ -157,11 +212,11 @@ li {
 
 .user_input_form input {
   padding: 20px;
-  width: 75%;
+  background: #303346;
+  width: 80%;
   transition: 0.5s;
-  border-top-left-radius: 10px;
   border: none;
-  border-bottom-left-radius: 10px;
+  border-radius: 10px;
 }
 
 .user_input_form input:focus {
@@ -199,47 +254,37 @@ li {
 /* 나 */
 .me {
   display: flex;
-  min-width: 230px;
   background: rgb(70, 119, 245);
-  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.518);
   max-width: 70%;
   position: relative;
-  right: -15%;
-  padding: 20px;
+  flex-direction: row-reverse;
+  right: -25%;
+  padding: 1.5vw;
   border-radius: 14px;
   margin: 30px 0;
   border-end-end-radius: 2px;
 }
 
 .me .content_profile {
-  border-radius: 50%;
-  position: absolute;
-  right: -70px;
-  background: rgb(90, 79, 79);
-  width: 60px;
-  top: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: black;
-  height: 60px;
+  display: none;
 }
 
 .me .content_createDate {
   position: absolute;
-  right: 0;
-  bottom: -23px;
+  color: #4e5057;
+  left: 5px;
+  bottom: -24px;
 }
 
 /* 상대방 */
 .others {
   display: flex;
   max-width: 70%;
-  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.518);
   position: relative;
   right: -6%;
   background: #393e50;
   border-radius: 14px;
-  padding: 20px;
+  padding: 1.5vw;
   margin: 30px 0;
   border-bottom-left-radius: 2px;
 }
@@ -248,6 +293,7 @@ li {
   position: absolute;
   left: -70px;
   background: white;
+
   width: 60px;
   top: 50%;
   transform: translateY(-50%);
@@ -255,12 +301,18 @@ li {
   height: 60px;
 }
 
+.others .content_createDate {
+  position: absolute;
+  right: 8px;
+  color: #4e5057;
+  bottom: -24px;
+}
+
 .content_profile .content_img {
   background-image: url('../public/avatar.png');
   background-size: cover;
   background-position: center;
   width: 100%;
-  border-radius: 3px;
   height: 100%;
 }
 
@@ -268,6 +320,7 @@ li {
 
 .login_modal {
   position: fixed;
+  z-index: 10000;
   visibility: hidden;
   right: 50%;
   left: 50%;
