@@ -8,7 +8,7 @@ const io = new Server(server, {
   cors: ["http://localhost:5173","https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app", "*"],
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 5000;
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("/", (req, res) => {
   console.log(path.join(__dirname, "/", "dist/"));
