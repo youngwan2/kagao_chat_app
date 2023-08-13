@@ -2,7 +2,7 @@
 카가오 챗 앱
 
 ## 프리뷰
-<img src="![image](https://github.com/youngwan2/kagao_chat_app/assets/107159871/74283567-e334-4995-9f7a-80d4e37b4cf5)" alt="app preview" width="300" height="300"/>
+![image](https://github.com/youngwan2/kagao_chat_app/assets/107159871/5e1ae0ec-3a1e-480f-a82c-96671da30219)
 
 ## 현황
 - 23/08/12 : 간단한 채팅기능 구현 (별도의 방 입장 기능없이, 모든 호스트에서 동시에 접근이 가능한 상태)
