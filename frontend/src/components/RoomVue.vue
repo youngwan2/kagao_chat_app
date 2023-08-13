@@ -4,7 +4,7 @@
       <h2 class="title">방목록</h2>
       <hr />
       <ul>
-        <li v-for="(room, i) in rooms" :key="i" @click="roomSwitch(i)">{{ roomName[i] }}</li>
+        <li v-for="(_, i) in rooms" :key="i" @click="roomSwitch(i)">{{ roomName[i] }}</li>
       </ul>
       <button @click="windowClose" class="room_icon_inner">닫기</button>
     </div>
@@ -35,7 +35,7 @@ export default {
       closeState.value = !closeState.value
     }
 
-    const roomLeave =()=>{
+    const roomLeave = () => {
       context.emit('roomLeave', currentRoomIndex.value)
       location.reload()
     }
@@ -51,7 +51,6 @@ export default {
   }
 }
 </script>
-
 
 <style scoped>
 h2 {
@@ -123,7 +122,7 @@ ul li:hover {
   top: 2.5rem;
 }
 
-.room_leave{
+.room_leave {
   position: fixed;
   right: 5px;
   padding: 2px 6px;

@@ -56,7 +56,6 @@ import { io } from 'socket.io-client'
 import { reactive, ref } from 'vue'
 import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
-import Login from './components/Login.vue'
 import RoomVue from './components/RoomVue.vue'
 
 const socket = io('http://localhost:3000')
@@ -96,7 +95,7 @@ const room = reactive({
 function roomChoice(roomInfo: { index: number; name: string }) {
   room.index = roomInfo.index
   room.name = roomInfo.name
-  
+
   socket.emit('roomChoice', room.index)
 }
 
@@ -104,7 +103,11 @@ function roomChoice(roomInfo: { index: number; name: string }) {
 function sendMessage() {
   console.log('메시지를 보냈다.')
   console.log(room.name)
-  socket.emit(`${room.name}`, { message: message.userInput, username:username.value,group:room.name })
+  socket.emit(`${room.name}`, {
+    message: message.userInput,
+    username: username.value,
+    group: room.name
+  })
 }
 
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
@@ -153,7 +156,7 @@ function login() {
   } else {
     // 서버와 클라이언트 소켓을 연결
     socket.on(`${room.name}`, (content) => {
-      console.log("서버에서 받은:",content)
+      console.log('서버에서 받은:', content)
       message.messages = content
       gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
       createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
@@ -166,8 +169,8 @@ const dataToChild = (data: string) => {
   console.log(data)
 }
 
-const roomLeave=(i:number)=>{
-  socket.emit('leave',i)
+const roomLeave = (i: number) => {
+  socket.emit('leave', i)
 }
 </script>
 

@@ -36,9 +36,6 @@
 
 <script lang="ts">
 import { reactive, ref, toRef } from 'vue'
-type userInfoType = {
-  username: string
-}
 export default {
   props: {
     userInfo: Array
@@ -73,7 +70,6 @@ export default {
 }
 </script>
 <style scoped>
-
 /* 컴포넌트 전체 컨테이너 */
 .outer_container {
   opacity: 0.9;
