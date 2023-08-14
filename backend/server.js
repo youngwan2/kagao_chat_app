@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const path = require('path')
+const path = require("path");
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -10,12 +10,10 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-
-
-app.use(express.static(__dirname+'/dist'))
-app.get('/',(req,res)=>{
-  res.sendFile(path.join(__dirname,'dist','index.html'))
-})
+// app.use(express.static(__dirname+'/dist'))
+// app.get('/',(req,res)=>{
+//   res.sendFile(path.join(__dirname,'dist','index.html'))
+// })
 const messageList = [];
 
 const roomList = {
@@ -42,7 +40,7 @@ const messageFilter = (messageList, messages) => {
       roomList.room3[roomList.room3.length] =
         messageList[messageList.length - 1];
   }
-  console.log(messageList)
+  console.log(messageList);
 };
 
 io.on("connection", (socket) => {
@@ -50,11 +48,18 @@ io.on("connection", (socket) => {
     socket.leave(rooms[index]);
   });
   socket.on("roomChoice", (room) => {
+    socket.on("change", (username) => {
+      console.log(username);
+
+      io.to(`${rooms[room]}`).emit("alarm", {
+        message: username + "님이 글을 작성 중입니다.",
+      });
+    });
+
     socket.on(`${rooms[room]}`, (messages) => {
       socket.join(rooms[room]);
       console.log(socket.rooms);
 
-      
       messageList.push({
         id: socket.client.id,
         messages: messages.message,

@@ -7,14 +7,28 @@
     <!-- 우측 헤더 영역 -->
     <section class="right-container">
       <!-- 로그인 창 -->
-      <div :class="modalState" class="login_modal">
-        <h2>Login</h2>
-        <input type="text" minlength="2" maxlength="4" v-model="username" @keyup.enter="onModal" />
-        <br /><br />
-        <button @click="onModal">입장</button>
-      </div>
-      <button class="login_icon" @click="login">로그인</button>
+      <article :class="modalState" class="login_modal">
+        <div
+          class="login_inner_con"
+          style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%)"
+        >
+          <h2 style="margin: 10px">사용하실 닉네임을 입력해주세요</h2>
+          <input
+            type="text"
+            minlength="2"
+            maxlength="5"
+            v-model="username"
+            @keyup.enter="onModal"
+            placeholder="2자~5자 이내"
+          />
+          <br /><br />
+          <button @click="login" :disabled="username.length < 1">입장</button>
+        </div>
+      </article>
+      <!-- 나가기 아이콘 -->
       <RoomVue @choice="roomChoice" @roomLave="roomLeave" />
+
+      <!-- 헤더 -->
       <Header :username="username"></Header>
 
       <!-- 우측 하단 메인의 대화창 영역 -->
@@ -32,7 +46,7 @@
       </section>
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
-        <input type="text" v-model="message.userInput" />
+        <input type="text" v-model="message.userInput" @input="typingCheck" />
         <button class="submit_btn" @click="sendMessage">
           <svg
             style="fill: white"
@@ -48,21 +62,23 @@
         </button>
       </form>
     </section>
+    <article class="input_alarm">
+      <span>~~님이 글을 작성 중입니다. </span>
+    </article>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { io } from 'socket.io-client'
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
-import Login from './components/Login.vue'
 import RoomVue from './components/RoomVue.vue'
 
 const socket = io('http://localhost:3000')
 
-const username = ref('익명')
-const modalState = ref('modal_off')
+const username = ref('')
+const modalState = ref('modal_on')
 
 type dType = {
   id: string
@@ -96,15 +112,18 @@ const room = reactive({
 function roomChoice(roomInfo: { index: number; name: string }) {
   room.index = roomInfo.index
   room.name = roomInfo.name
-  
+
   socket.emit('roomChoice', room.index)
 }
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
-  console.log('메시지를 보냈다.')
-  console.log(room.name)
-  socket.emit(`${room.name}`, { message: message.userInput, username:username.value,group:room.name })
+  console.log('현재방:', room.name)
+  socket.emit(`${room.name}`, {
+    message: message.userInput,
+    username: username.value,
+    group: room.name
+  })
 }
 
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
@@ -153,7 +172,7 @@ function login() {
   } else {
     // 서버와 클라이언트 소켓을 연결
     socket.on(`${room.name}`, (content) => {
-      console.log("서버에서 받은:",content)
+      console.log('서버에서 받은:', content)
       message.messages = content
       gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
       createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
@@ -162,12 +181,16 @@ function login() {
   }
 }
 
+function typingCheck() {
+  socket.emit('change', username.value)
+}
+
 const dataToChild = (data: string) => {
   console.log(data)
 }
 
-const roomLeave=(i:number)=>{
-  socket.emit('leave',i)
+const roomLeave = (i: number) => {
+  socket.emit('leave', i)
 }
 </script>
 
@@ -204,9 +227,10 @@ li {
 /* form ui */
 .user_input_form {
   border-radius: 20px;
+  display: flex;
   padding: 20px;
   position: fixed;
-  bottom: 9px;
+  bottom: 15px;
   width: 66%;
 }
 
@@ -220,8 +244,9 @@ li {
 }
 
 .user_input_form input:focus {
+  color: white;
   outline: none;
-  box-shadow: inset 0 0 3px 1px rgb(9, 45, 162);
+  box-shadow: inset 0 0 3px 1px rgba(16, 29, 71, 0.778);
 }
 
 /* 전송버튼 */
@@ -261,7 +286,7 @@ li {
   right: -25%;
   padding: 1.5vw;
   border-radius: 14px;
-  margin: 30px 0;
+  margin: 35px 0;
   border-end-end-radius: 2px;
 }
 
@@ -285,20 +310,22 @@ li {
   background: #393e50;
   border-radius: 14px;
   padding: 1.5vw;
-  margin: 30px 0;
+  margin: 35px 0;
   border-bottom-left-radius: 2px;
 }
 
 .others .content_profile {
   position: absolute;
-  left: -70px;
-  background: white;
+  left: -60px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  width: 55px;
 
-  width: 60px;
   top: 50%;
   transform: translateY(-50%);
   color: black;
-  height: 60px;
+  height: 55px;
 }
 
 .others .content_createDate {
@@ -312,33 +339,43 @@ li {
   background-image: url('../public/avatar.png');
   background-size: cover;
   background-position: center;
+  border-radius: 10px;
   width: 100%;
   height: 100%;
 }
 
 /* 로그인 모달 창 */
-
 .login_modal {
   position: fixed;
-  z-index: 10000;
+  z-index: 1000;
   visibility: hidden;
-  right: 50%;
-  left: 50%;
   box-shadow: 10px 10px 5px 2px rgba(0, 0, 0, 0.28);
-  border-radius: 20px;
   background: #6785ff;
-
   transition: 1s;
-  width: 300px;
-  height: 200px;
 }
+
 .modal_off {
   opacity: 0;
+  transition: 1s;
+  visibility: hidden;
+  left: 0;
+  top: 0;
+  transform: scale(0);
+  width: 100%;
+  bottom: 0;
+  right: 0;
 }
 
 .modal_on {
+  left: 0;
+  top: 0;
+  transform: scale(1);
+  transition: 1s;
+  width: 100%;
+  bottom: 0;
+  right: 0;
   visibility: visible;
-  transform: translate(-50%, 40px);
+  height: 100%;
   opacity: 1;
 }
 
@@ -346,11 +383,14 @@ li {
 .login_modal h2 {
   margin-top: 1.5rem;
 }
+/* 유저 닉네임 입력창 */
 .login_modal input {
-  box-shadow: inset 0 0 5px 2px black;
+  text-align: center;
+  box-shadow: inset 0 0 3px 1px rgba(40, 40, 40, 0.727);
   transition: 0.5s ease-in-out;
-  padding: 20px;
+  padding: 15px 5vw;
   border: none;
+  border-radius: 10px;
   margin-top: 0.5rem;
 }
 
@@ -358,9 +398,27 @@ li {
   box-shadow: inset 300px 0 0 0 goldenrod;
 }
 
+/* 입장 버튼 */
+.login_modal button {
+  padding: 10px 12px;
+  width: 150px;
+}
+
 /* 로그인 아이콘 */
 .login_icon {
   position: fixed;
   right: 5px;
+}
+
+/* 유저 글작성 중 알람 */
+.input_alarm {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.901);
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.628);
+  left: 50%;
+  top: 9rem;
+  transform: translate(-50%);
 }
 </style>

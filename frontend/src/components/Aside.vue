@@ -99,6 +99,8 @@ li {
   display: flex;
   background: #303346;
   width: 100%;
+  min-width: 300px;
+  max-width:400px;
   border-radius: 20px;
   transition: 1s;
   overflow: auto scroll;
@@ -123,6 +125,7 @@ li {
 .aside_search {
   margin: 10px auto;
   width: 90%;
+
   border-radius: 20px;
   background: white;
   text-align: center;
