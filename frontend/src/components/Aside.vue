@@ -11,7 +11,9 @@
             </svg>
           </label>
           <input type="text" id="user_search" />
+          
         </div>
+        <p style="text-align: center; ">접속자: {{ userInfo?.length }}명</p>
         <ul class="aside_userlist">
           <li v-for="(info, i) in userInfo" :key="i">
             <img src="" alt="프로필" class="profile" width="50" height="50" />
@@ -36,9 +38,7 @@
 
 <script lang="ts">
 import { reactive, ref, toRef } from 'vue'
-type userInfoType = {
-  username: string
-}
+
 export default {
   props: {
     userInfo: Array
@@ -66,14 +66,14 @@ export default {
       offDisplay,
       onDisplay,
       displayState,
-      display
+      display,
+      context
       // userInfo
     }
   }
 }
 </script>
 <style scoped>
-
 /* 컴포넌트 전체 컨테이너 */
 .outer_container {
   opacity: 0.9;
@@ -100,7 +100,7 @@ li {
   background: #303346;
   width: 100%;
   min-width: 300px;
-  max-width:400px;
+  max-width: 400px;
   border-radius: 20px;
   transition: 1s;
   overflow: auto scroll;
@@ -153,7 +153,7 @@ li {
 /* 유저리스트 영역 */
 .aside_userlist {
   padding-left: 0;
-  margin-top: 3rem;
+  margin-top: 2.25rem;
 }
 
 .aside_userlist li {

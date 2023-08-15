@@ -3,13 +3,14 @@
     <div class="room_container" :class="closeState ? 'on' : 'off'">
       <h2 class="title">이용하고자 하는 방을 선택해주세요</h2>
       <p style="padding:5px">※ 만일, 방 변경에 문제가 발생한다면 우측 상단의 나가기 버튼을 클릭 후 다시 시도해주세요</p>
+      <p style="padding:5px">※ 방 입장 후 채팅을 한 번 입력해주세요. 그러면 정상적으로 메시지가 표시됩니다. 이 문제는 빠른 시일 내에 개선토록 하겠습니다.</p>
       <ul>
         <li v-for="(_, i) in rooms" :key="i" @click="roomSwitch(i)">{{ roomName[i] }}</li>
       </ul>
     </div>
     <button @click="roomLeave" class="room_leave">나가기</button>
     <div>
-      <h3>{{ roomName[currentRoomIndex] }} 채팅방</h3>
+      <h3>{{ roomName[currentRoomIndex] }}채팅방</h3>
     </div>
   </div>
 </template>
@@ -60,8 +61,8 @@ h2 {
 
 .on {
   transition: 0.5s;
+  opacity: 1;
   visibility: visible;
-  animation: appear 1s 1 ease-in-out;
 }
 
 

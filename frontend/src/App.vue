@@ -18,7 +18,7 @@
             minlength="2"
             maxlength="5"
             v-model="username"
-            @keyup.enter="onModal"
+            @keyup.enter="login"
             placeholder="2자~5자 이내"
           />
           <br /><br />
@@ -26,7 +26,7 @@
         </div>
       </article>
       <!-- 나가기 아이콘 -->
-      <RoomVue @choice="roomChoice" @roomLave="roomLeave" />
+      <RoomVue @choice="roomChoice" />
 
       <!-- 헤더 -->
       <Header :username="username"></Header>
@@ -46,8 +46,8 @@
       </section>
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
-        <input type="text" v-model="message.userInput" @input="typingCheck" />
-        <button class="submit_btn" @click="sendMessage">
+        <input type="text" v-model="message.userInput" v-show="userState.disabled" />
+        <button class="submit_btn" @click="sendMessage" v-show="userState.disabled">
           <svg
             style="fill: white"
             xmlns="http://www.w3.org/2000/svg"
@@ -62,15 +62,15 @@
         </button>
       </form>
     </section>
-    <article class="input_alarm">
-      <span>~~님이 글을 작성 중입니다. </span>
+    <article class="input_alarm" :class="userAlarm">
+      <span>{{ message.messages[message.messages.length - 1]?.username }}님이 응답하셨습니다.</span>
     </article>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { io } from 'socket.io-client'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
 import RoomVue from './components/RoomVue.vue'
@@ -107,6 +107,21 @@ const room = reactive({
   index: 0,
   name: 'room1'
 })
+
+const userState = reactive({
+  message: '',
+  disabled: true
+})
+
+const userAlarm = ref('alarm_off')
+
+// 유저가 입장하면 활성화되는 함수
+function isEnter() {
+  userAlarm.value = 'alarm_on'
+  setTimeout(() => {
+    userAlarm.value = 'alarm_off'
+  }, 3000)
+}
 
 // 방선택하는 함수
 function roomChoice(roomInfo: { index: number; name: string }) {
@@ -153,11 +168,14 @@ function createUid(content: dType[]) {
   const uid: string[] = []
   message.uid = content.filter((d: dType, i) => {
     uid.push(content[i].id)
+    // id 배열에서 유저의 id가 존재할 때 처음 등장한 id에 해당하는 요소만
+    // 필터링하여 message.uid의 값으로 할당한다.
     return uid.indexOf(d.id) === i
   })
-  console.log(message.uid)
 }
 
+// 중복된 닉네임을 제거하기 위한 사전 작업을 실행하는 함수
+// 여기서 생성한 배열을 Aside.vue 에서 필터링하여 유저목록에 렌더링한다.
 function gernateUNick(content: dType[]) {
   for (let nick of content) {
     message.userList.push(nick.username)
@@ -167,6 +185,7 @@ function gernateUNick(content: dType[]) {
 // 로그인 함수로 로그인 시 서버와 소켓을 연결한다.
 function login() {
   onModal()
+
   if (message.userList.includes(username.value)) {
     return alert('중복된 닉네임입니다. ')
   } else {
@@ -177,23 +196,11 @@ function login() {
       gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
       createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
       targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
+      isEnter()
     })
   }
 }
-
-function typingCheck() {
-  socket.emit('change', username.value)
-}
-
-const dataToChild = (data: string) => {
-  console.log(data)
-}
-
-const roomLeave = (i: number) => {
-  socket.emit('leave', i)
-}
 </script>
-
 <style scoped>
 .container {
   display: flex;
@@ -226,6 +233,7 @@ li {
 
 /* form ui */
 .user_input_form {
+  justify-content: center;
   border-radius: 20px;
   display: flex;
   padding: 20px;
@@ -288,6 +296,15 @@ li {
   border-radius: 14px;
   margin: 35px 0;
   border-end-end-radius: 2px;
+  box-shadow: 5px 4px 5px 2px rgba(45, 44, 44, 0.295);
+  animation: appear 1 1s ease;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
 }
 
 .me .content_profile {
@@ -312,6 +329,13 @@ li {
   padding: 1.5vw;
   margin: 35px 0;
   border-bottom-left-radius: 2px;
+  animation: others 1 1s ease;
+}
+@keyframes others {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
 }
 
 .others .content_profile {
@@ -360,7 +384,8 @@ li {
   visibility: hidden;
   left: 0;
   top: 0;
-  transform: scale(0);
+  transform: rotateX(90deg) perspective(600px) translate(0px, 1000px) scale(0);
+  transform-origin: top 0%;
   width: 100%;
   bottom: 0;
   right: 0;
@@ -369,7 +394,8 @@ li {
 .modal_on {
   left: 0;
   top: 0;
-  transform: scale(1);
+  transform: rotateX(0) perspective(600px);
+  transform-origin: top 100%;
   transition: 1s;
   width: 100%;
   bottom: 0;
@@ -420,5 +446,16 @@ li {
   left: 50%;
   top: 9rem;
   transform: translate(-50%);
+}
+
+/* 사용자 입장 시 알림 메시지 */
+.alarm_on {
+  visibility: visible;
+  opacity: 1;
+}
+
+.alarm_off {
+  visibility: hidden;
+  opacity: 0;
 }
 </style>
