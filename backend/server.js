@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const path = require('path')
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -15,10 +16,10 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-// app.use(express.static(__dirname+'/dist'))
-// app.get('/',(req,res)=>{
-//   res.sendFile(path.join(__dirname,'dist','index.html'))
-// })
+app.use(express.static(__dirname+'/dist'))
+app.get('/',(req,res)=>{
+  res.sendFile(path.join(__dirname,'dist','index.html'))
+})
 let messageList = [];
 
 const roomList = {
