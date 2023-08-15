@@ -1,9 +1,5 @@
 const express = require("express");
 const app = express();
-<<<<<<< HEAD
-const path = require("path");
-=======
->>>>>>> main
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -11,16 +7,12 @@ const io = new Server(server, {
   cors: ["http://localhost:5173","https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app", "*"],
 });
 
-const PORT = 5000;
 app.use(express.static(path.join(__dirname, "dist")));
 app.get("/", (req, res) => {
   console.log(path.join(__dirname, "/", "dist/"));
   res.sendFile(path.join(__dirname, "/", "dist", "index.html"));
 });
 
-<<<<<<< HEAD
-const messageList = [];
-=======
 const PORT = process.env.PORT || 3000;
 
 // app.use(express.static(__dirname+'/dist'))
@@ -28,7 +20,6 @@ const PORT = process.env.PORT || 3000;
 //   res.sendFile(path.join(__dirname,'dist','index.html'))
 // })
 let messageList = [];
->>>>>>> main
 
 const roomList = {
   room1: [],
@@ -56,10 +47,6 @@ const messageFilter = (messageList) => {
   } catch (error) {
     console.log(error);
   }
-<<<<<<< HEAD
-  console.log(messageList);
-=======
->>>>>>> main
 };
 
 
@@ -71,10 +58,7 @@ io.on("connection", (socket) => {
       // 유저가 선택한 방으로 가입시킨다.
       socket.join(rooms[room]);
 
-<<<<<<< HEAD
-=======
       // 유저가 전송한 메시지를 서버단의 메시지 배열에 저장한다.
->>>>>>> main
       messageList.push({
         id: socket.id,
         messages: messages.message,
