@@ -5,7 +5,7 @@ const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: ["http://localhost:5173","https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app", "*"],
+  cors: ["http://localhost:5173","https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/", "*"],
 });
 
 app.use(express.static(path.join(__dirname, "dist")));
