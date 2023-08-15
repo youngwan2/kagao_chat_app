@@ -1,17 +1,16 @@
 <template>
   <div>
     <div class="room_container" :class="closeState ? 'on' : 'off'">
-      <h2 class="title">방목록</h2>
-      <hr />
+      <h2 class="title">이용하고자 하는 방을 선택해주세요</h2>
+      <p style="padding:5px">※ 만일, 방 변경에 문제가 발생한다면 우측 상단의 나가기 버튼을 클릭 후 다시 시도해주세요</p>
+      <p style="padding:5px">※ 방 입장 후 채팅을 한 번 입력해주세요. 그러면 정상적으로 메시지가 표시됩니다. 이 문제는 빠른 시일 내에 개선토록 하겠습니다.</p>
       <ul>
         <li v-for="(_, i) in rooms" :key="i" @click="roomSwitch(i)">{{ roomName[i] }}</li>
       </ul>
-      <button @click="windowClose" class="room_icon_inner">닫기</button>
     </div>
-    <button @click="windowClose" class="room_icon">방목록</button>
     <button @click="roomLeave" class="room_leave">나가기</button>
     <div>
-      <h3>{{ roomName[currentRoomIndex] }} 채팅방</h3>
+      <h3>{{ roomName[currentRoomIndex] }}채팅방</h3>
     </div>
   </div>
 </template>
@@ -19,7 +18,7 @@
 <script lang="ts">
 import { ref } from 'vue'
 export default {
-  setup(props, context) {
+  setup(_, context) {
     const rooms = ['room1', 'room2', 'room3']
     const roomName = ['자유', '회의', '기타']
     const currentRoomIndex = ref(0)
@@ -35,7 +34,7 @@ export default {
       closeState.value = !closeState.value
     }
 
-    const roomLeave = () => {
+    const roomLeave =()=>{
       context.emit('roomLeave', currentRoomIndex.value)
       location.reload()
     }
@@ -53,26 +52,18 @@ export default {
 </script>
 
 <style scoped>
+/* 인트로 소개글 */
 h2 {
-  color: black;
-  background-color: rgb(255, 255, 255);
-  font-size: 3rem;
+  color: rgb(255, 255, 255);
+  padding: 30px 0 0 0;
 }
 
 .on {
   transition: 0.5s;
+  opacity: 1;
   visibility: visible;
-  transform: translate(0) perspective(600);
-  animation: appear 1s 1 ease-in-out;
 }
 
-@keyframes appear {
-  from {
-    transform: translate(-1000px, -1000px) skewY(-80deg);
-    transform-origin: top top;
-    opacity: 0;
-  }
-}
 
 .off {
   transition: 1s;
@@ -82,7 +73,8 @@ h2 {
 }
 .room_container {
   position: absolute;
-  background: #303346;
+  padding-top: 5rem;
+  background: #6785ff;
   z-index: 1000;
   left: 0;
   top: 0;
@@ -90,50 +82,67 @@ h2 {
   height: 110vh;
 }
 ul {
-  margin: 2rem 0 0 0;
+  margin: 1rem 0 0 0;
   padding: 0;
 }
 ul li {
   transition: 1s;
   color: black;
+  position: relative;
   border-radius: 5px;
-  background: #6785ff;
+  background: white;
   border: none;
   list-style: none;
   max-width: 600px;
-  box-shadow: inset 0 2px 2px 1px;
+  box-shadow: inset 0 2px 2px 1px rgba(0, 0, 0, 0.466);
   font-size: 1.5rem;
   margin: 10px auto;
 }
 
 ul li:hover {
-  color: white;
+  color: rgb(44, 44, 44);
   cursor: pointer;
-  padding: 15px;
-  transform: matrix(2px);
-  box-shadow: inset 1000px 0 0 0 rgb(120, 121, 133);
+  padding: 12px;
+  box-shadow: inset 1000px 0 0 0 rgb(255, 255, 255);
+}
+
+ul li::before {
+  content: '';
+  width: 0%;
+  position: absolute;
+  bottom: 5px;
+  transition: 0.5s;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+ul li:hover::before {
+  content: '';
+  border-bottom: 3px ridge red;
+  width: 8%;
 }
 
 /* 방 아이콘 */
-.room_icon {
+
+.room_leave {
   position: fixed;
+  z-index: 100000;
   right: 5px;
   padding: 2px 6px;
   top: 2.5rem;
 }
 
-.room_leave {
-  position: fixed;
-  right: 5px;
-  padding: 2px 6px;
-  top: 4.5rem;
-}
-
 .room_icon_inner {
   margin-top: 1.5rem;
-  box-shadow: 2px 2px 5px 1px;
+  border: none;
+  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.658);
+  border-radius: 10px;
   width: 100px;
   padding: 10px;
   cursor: pointer;
+}
+
+.room_icon_inner:hover {
+  background: #bdbdbd;
 }
 </style>

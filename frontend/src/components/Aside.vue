@@ -11,7 +11,9 @@
             </svg>
           </label>
           <input type="text" id="user_search" />
+          
         </div>
+        <p style="text-align: center; ">접속자: {{ userInfo?.length }}명</p>
         <ul class="aside_userlist">
           <li v-for="(info, i) in userInfo" :key="i">
             <img src="" alt="프로필" class="profile" width="50" height="50" />
@@ -63,7 +65,8 @@ export default {
       offDisplay,
       onDisplay,
       displayState,
-      display
+      display,
+      context
       // userInfo
     }
   }
@@ -95,6 +98,8 @@ li {
   display: flex;
   background: #303346;
   width: 100%;
+  min-width: 300px;
+  max-width: 400px;
   border-radius: 20px;
   transition: 1s;
   overflow: auto scroll;
@@ -119,6 +124,7 @@ li {
 .aside_search {
   margin: 10px auto;
   width: 90%;
+
   border-radius: 20px;
   background: white;
   text-align: center;
@@ -146,7 +152,7 @@ li {
 /* 유저리스트 영역 */
 .aside_userlist {
   padding-left: 0;
-  margin-top: 3rem;
+  margin-top: 2.25rem;
 }
 
 .aside_userlist li {

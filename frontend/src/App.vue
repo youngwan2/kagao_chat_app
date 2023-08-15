@@ -7,14 +7,28 @@
     <!-- 우측 헤더 영역 -->
     <section class="right-container">
       <!-- 로그인 창 -->
-      <div :class="modalState" class="login_modal">
-        <h2>Login</h2>
-        <input type="text" minlength="2" maxlength="4" v-model="username" @keyup.enter="onModal" />
-        <br /><br />
-        <button @click="onModal">입장</button>
-      </div>
-      <button class="login_icon" @click="login">로그인</button>
-      <RoomVue @choice="roomChoice" @roomLave="roomLeave" />
+      <article :class="modalState" class="login_modal">
+        <div
+          class="login_inner_con"
+          style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%)"
+        >
+          <h2 style="margin: 10px">사용하실 닉네임을 입력해주세요</h2>
+          <input
+            type="text"
+            minlength="2"
+            maxlength="5"
+            v-model="username"
+            @keyup.enter="login"
+            placeholder="2자~5자 이내"
+          />
+          <br /><br />
+          <button @click="login" :disabled="username.length < 1">입장</button>
+        </div>
+      </article>
+      <!-- 나가기 아이콘 -->
+      <RoomVue @choice="roomChoice" />
+
+      <!-- 헤더 -->
       <Header :username="username"></Header>
 
       <!-- 우측 하단 메인의 대화창 영역 -->
@@ -32,8 +46,8 @@
       </section>
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
-        <input type="text" v-model="message.userInput" />
-        <button class="submit_btn" @click="sendMessage">
+        <input type="text" v-model="message.userInput" v-show="userState.disabled" />
+        <button class="submit_btn" @click="sendMessage" v-show="userState.disabled">
           <svg
             style="fill: white"
             xmlns="http://www.w3.org/2000/svg"
@@ -48,6 +62,9 @@
         </button>
       </form>
     </section>
+    <article class="input_alarm" :class="userAlarm">
+      <span>{{ message.messages[message.messages.length - 1]?.username }}님이 응답하셨습니다.</span>
+    </article>
   </div>
 </template>
 
@@ -60,8 +77,8 @@ import RoomVue from './components/RoomVue.vue'
 
 const socket = io('http://localhost:3000')
 
-const username = ref('익명')
-const modalState = ref('modal_off')
+const username = ref('')
+const modalState = ref('modal_on')
 
 type dType = {
   id: string
@@ -91,18 +108,32 @@ const room = reactive({
   name: 'room1'
 })
 
+const userState = reactive({
+  message: '',
+  disabled: true
+})
+
+const userAlarm = ref('alarm_off')
+
+// 유저가 입장하면 활성화되는 함수
+function isEnter() {
+  userAlarm.value = 'alarm_on'
+  setTimeout(() => {
+    userAlarm.value = 'alarm_off'
+  }, 3000)
+}
+
 // 방선택하는 함수
 function roomChoice(roomInfo: { index: number; name: string }) {
   room.index = roomInfo.index
   room.name = roomInfo.name
-
+  
   socket.emit('roomChoice', room.index)
 }
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
-  console.log('메시지를 보냈다.')
-  console.log(room.name)
+  console.log('현재방:', room.name)
   socket.emit(`${room.name}`, {
     message: message.userInput,
     username: username.value,
@@ -137,11 +168,14 @@ function createUid(content: dType[]) {
   const uid: string[] = []
   message.uid = content.filter((d: dType, i) => {
     uid.push(content[i].id)
+    // id 배열에서 유저의 id가 존재할 때 처음 등장한 id에 해당하는 요소만
+    // 필터링하여 message.uid의 값으로 할당한다.
     return uid.indexOf(d.id) === i
   })
-  console.log(message.uid)
 }
 
+// 중복된 닉네임을 제거하기 위한 사전 작업을 실행하는 함수
+// 여기서 생성한 배열을 Aside.vue 에서 필터링하여 유저목록에 렌더링한다.
 function gernateUNick(content: dType[]) {
   for (let nick of content) {
     message.userList.push(nick.username)
@@ -151,6 +185,7 @@ function gernateUNick(content: dType[]) {
 // 로그인 함수로 로그인 시 서버와 소켓을 연결한다.
 function login() {
   onModal()
+
   if (message.userList.includes(username.value)) {
     return alert('중복된 닉네임입니다. ')
   } else {
@@ -161,19 +196,13 @@ function login() {
       gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
       createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
       targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
+      isEnter()
     })
   }
 }
 
-const dataToChild = (data: string) => {
-  console.log(data)
-}
 
-const roomLeave = (i: number) => {
-  socket.emit('leave', i)
-}
 </script>
-
 <style scoped>
 .container {
   display: flex;
@@ -206,10 +235,12 @@ li {
 
 /* form ui */
 .user_input_form {
+  justify-content: center;
   border-radius: 20px;
+  display: flex;
   padding: 20px;
   position: fixed;
-  bottom: 9px;
+  bottom: 15px;
   width: 66%;
 }
 
@@ -223,8 +254,9 @@ li {
 }
 
 .user_input_form input:focus {
+  color: white;
   outline: none;
-  box-shadow: inset 0 0 3px 1px rgb(9, 45, 162);
+  box-shadow: inset 0 0 3px 1px rgba(16, 29, 71, 0.778);
 }
 
 /* 전송버튼 */
@@ -264,8 +296,17 @@ li {
   right: -25%;
   padding: 1.5vw;
   border-radius: 14px;
-  margin: 30px 0;
+  margin: 35px 0;
   border-end-end-radius: 2px;
+  box-shadow: 5px 4px 5px 2px rgba(45, 44, 44, 0.295);
+  animation: appear 1 1s ease;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
 }
 
 .me .content_profile {
@@ -288,20 +329,29 @@ li {
   background: #393e50;
   border-radius: 14px;
   padding: 1.5vw;
-  margin: 30px 0;
+  margin: 35px 0;
   border-bottom-left-radius: 2px;
+  animation: others 1 1s ease;
+}
+@keyframes others {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
 }
 
 .others .content_profile {
   position: absolute;
-  left: -70px;
-  background: white;
+  left: -60px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  width: 55px;
 
-  width: 60px;
   top: 50%;
   transform: translateY(-50%);
   color: black;
-  height: 60px;
+  height: 55px;
 }
 
 .others .content_createDate {
@@ -315,33 +365,45 @@ li {
   background-image: url('../public/avatar.png');
   background-size: cover;
   background-position: center;
+  border-radius: 10px;
   width: 100%;
   height: 100%;
 }
 
 /* 로그인 모달 창 */
-
 .login_modal {
   position: fixed;
-  z-index: 10000;
+  z-index: 1000;
   visibility: hidden;
-  right: 50%;
-  left: 50%;
   box-shadow: 10px 10px 5px 2px rgba(0, 0, 0, 0.28);
-  border-radius: 20px;
   background: #6785ff;
-
   transition: 1s;
-  width: 300px;
-  height: 200px;
 }
+
 .modal_off {
   opacity: 0;
+  transition: 1s;
+  visibility: hidden;
+  left: 0;
+  top: 0;
+  transform: rotateX(90deg) perspective(600px) translate(0px, 1000px) scale(0);
+  transform-origin: top 0%;
+  width: 100%;
+  bottom: 0;
+  right: 0;
 }
 
 .modal_on {
+  left: 0;
+  top: 0;
+  transform: rotateX(0) perspective(600px);
+  transform-origin: top 100%;
+  transition: 1s;
+  width: 100%;
+  bottom: 0;
+  right: 0;
   visibility: visible;
-  transform: translate(-50%, 40px);
+  height: 100%;
   opacity: 1;
 }
 
@@ -349,11 +411,14 @@ li {
 .login_modal h2 {
   margin-top: 1.5rem;
 }
+/* 유저 닉네임 입력창 */
 .login_modal input {
-  box-shadow: inset 0 0 5px 2px black;
+  text-align: center;
+  box-shadow: inset 0 0 3px 1px rgba(40, 40, 40, 0.727);
   transition: 0.5s ease-in-out;
-  padding: 20px;
+  padding: 15px 5vw;
   border: none;
+  border-radius: 10px;
   margin-top: 0.5rem;
 }
 
@@ -361,9 +426,38 @@ li {
   box-shadow: inset 300px 0 0 0 goldenrod;
 }
 
+/* 입장 버튼 */
+.login_modal button {
+  padding: 10px 12px;
+  width: 150px;
+}
+
 /* 로그인 아이콘 */
 .login_icon {
   position: fixed;
   right: 5px;
+}
+
+/* 유저 글작성 중 알람 */
+.input_alarm {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.901);
+  border-radius: 10px;
+  padding: 5px 10px;
+  box-shadow: 2px 2px 5px 1px rgba(0, 0, 0, 0.628);
+  left: 50%;
+  top: 9rem;
+  transform: translate(-50%);
+}
+
+/* 사용자 입장 시 알림 메시지 */
+.alarm_on {
+  visibility: visible;
+  opacity: 1;
+}
+
+.alarm_off {
+  visibility: hidden;
+  opacity: 0;
 }
 </style>
