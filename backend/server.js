@@ -1,9 +1,6 @@
 const express = require("express");
 const app = express();
-<<<<<<< HEAD
 const path = require("path");
-=======
->>>>>>> main
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -18,17 +15,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/", "dist", "index.html"));
 });
 
-<<<<<<< HEAD
 const messageList = [];
-=======
-const PORT = process.env.PORT || 3000;
-
-// app.use(express.static(__dirname+'/dist'))
-// app.get('/',(req,res)=>{
-//   res.sendFile(path.join(__dirname,'dist','index.html'))
-// })
-let messageList = [];
->>>>>>> main
 
 const roomList = {
   room1: [],
@@ -56,10 +43,7 @@ const messageFilter = (messageList) => {
   } catch (error) {
     console.log(error);
   }
-<<<<<<< HEAD
   console.log(messageList);
-=======
->>>>>>> main
 };
 
 
@@ -71,10 +55,6 @@ io.on("connection", (socket) => {
       // 유저가 선택한 방으로 가입시킨다.
       socket.join(rooms[room]);
 
-<<<<<<< HEAD
-=======
-      // 유저가 전송한 메시지를 서버단의 메시지 배열에 저장한다.
->>>>>>> main
       messageList.push({
         id: socket.id,
         messages: messages.message,
