@@ -1,7 +1,8 @@
 <template>
   <div class="container">
+    <h1 style="text-align: center; background-color: black; position: fixed; width: 100%; bottom: 6rem;">{{userList }}</h1>
     <!-- 좌측 유저 목록 및 검색 영역 -->
-    <Aside :userInfo="message.uid"></Aside>
+    <Aside :username="message.uid" :userList="userList"></Aside>
     <!-- <Login :username="username" @dataToParent="dataToChild"/> -->
 
     <!-- 우측 헤더 영역 -->
@@ -26,7 +27,7 @@
         </div>
       </article>
       <!-- 나가기 아이콘 -->
-      <RoomVue @choice="roomChoice" />
+      <RoomVue @choice="roomChoice" @roomLeave="exit" />
 
       <!-- 헤더 -->
       <Header :username="username"></Header>
@@ -44,6 +45,7 @@
           </li>
         </ul>
       </section>
+
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
         <input type="text" v-model="message.userInput" v-show="userState.disabled" />
@@ -92,7 +94,8 @@ type Message = {
   userInput: string
   target: string[]
   uid: any[]
-  userList: string[]
+  accessor:string[],
+  userList:string[]
 }
 
 const message = reactive<Message>({
@@ -100,7 +103,8 @@ const message = reactive<Message>({
   userInput: '',
   target: [],
   uid: [],
-  userList: []
+  accessor:[],
+  userList:[]
 })
 
 const room = reactive({
@@ -112,6 +116,8 @@ const userState = reactive({
   message: '',
   disabled: true
 })
+
+const userList =ref<string[]>([])
 
 const userAlarm = ref('alarm_off')
 
@@ -127,9 +133,20 @@ function isEnter() {
 function roomChoice(roomInfo: { index: number; name: string }) {
   room.index = roomInfo.index
   room.name = roomInfo.name
-  
+
   socket.emit('roomChoice', room.index)
 }
+
+// 소켓을 종료하는 함수
+function exit(){
+  socket.close()
+}
+
+socket.on('access',(user)=>{
+  userList.value=user
+  console.log(userList.value)
+
+})
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
@@ -138,6 +155,14 @@ function sendMessage() {
     message: message.userInput,
     username: username.value,
     group: room.name
+  })
+
+  socket.on(`${room.name}`, (content) => {
+    console.log('서버에서 받은:', content)
+    message.messages = content
+    createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
+    targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
+    isEnter()
   })
 }
 
@@ -172,36 +197,21 @@ function createUid(content: dType[]) {
     // 필터링하여 message.uid의 값으로 할당한다.
     return uid.indexOf(d.id) === i
   })
+
+  message.userList = message.uid.map((data,i)=>{
+       return data.id
+  })
+
+  console.log(message.userList)
+
+  console.log(message.accessor)
 }
 
-// 중복된 닉네임을 제거하기 위한 사전 작업을 실행하는 함수
-// 여기서 생성한 배열을 Aside.vue 에서 필터링하여 유저목록에 렌더링한다.
-function gernateUNick(content: dType[]) {
-  for (let nick of content) {
-    message.userList.push(nick.username)
-  }
-}
 
 // 로그인 함수로 로그인 시 서버와 소켓을 연결한다.
 function login() {
   onModal()
-
-  if (message.userList.includes(username.value)) {
-    return alert('중복된 닉네임입니다. ')
-  } else {
-    // 서버와 클라이언트 소켓을 연결
-    socket.on(`${room.name}`, (content) => {
-      console.log('서버에서 받은:', content)
-      message.messages = content
-      gernateUNick(content) // 닉네임 방지를 위한 처리를 시도하는 함수
-      createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
-      targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
-      isEnter()
-    })
-  }
 }
-
-
 </script>
 <style scoped>
 .container {

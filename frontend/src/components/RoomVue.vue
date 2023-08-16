@@ -36,7 +36,8 @@ export default {
 
     const roomLeave =()=>{
       context.emit('roomLeave', currentRoomIndex.value)
-      location.reload()
+      
+      location.href='/'
     }
     return {
       rooms,

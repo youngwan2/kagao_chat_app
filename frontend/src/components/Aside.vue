@@ -13,9 +13,9 @@
           <input type="text" id="user_search" />
           
         </div>
-        <p style="text-align: center; ">접속자: {{ userInfo?.length }}명</p>
+        <p style="text-align: center; ">유저목록({{ username?.length }}명)</p>
         <ul class="aside_userlist">
-          <li v-for="(info, i) in userInfo" :key="i">
+          <li v-for="(info, i) in username" :key="i">
             <img src="" alt="프로필" class="profile" width="50" height="50" />
             <div>
               <p style="margin: 15px 0 0 0">{{ info.username }}</p>
@@ -40,7 +40,8 @@
 import { reactive, ref, toRef } from 'vue'
 export default {
   props: {
-    userInfo: Array
+    username: Array,
+    userList:Array
   },
   setup(props, context) {
     toRef(props)
