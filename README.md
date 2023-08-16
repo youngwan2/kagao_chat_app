@@ -1,8 +1,10 @@
 # kagao_chat_app
 카가오 챗 앱
 
-## 프리뷰
-![image](https://github.com/youngwan2/kagao_chat_app/assets/107159871/5e1ae0ec-3a1e-480f-a82c-96671da30219)
+## 프리뷰 및 임시호스팅
+![image](https://github.com/youngwan2/kagao_chat_app/assets/107159871/784c2d14-56a8-4216-ae7e-445660f414c4)
+
+https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/
 
 ## 현황
 - 23/08/12 : 간단한 채팅기능 구현 (별도의 방 입장 기능없이, 모든 호스트에서 동시에 접근이 가능한 상태)
