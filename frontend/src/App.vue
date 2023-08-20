@@ -1,16 +1,5 @@
 <template>
   <div class="container">
-    <h1
-      style="
-        text-align: center;
-        background-color: black;
-        position: fixed;
-        width: 100%;
-        bottom: 6rem;
-      "
-    >
-      현재 동시접속자는 {{ totalUsers.length }}명 입니다.
-    </h1>
     <!-- 좌측 유저 목록 및 검색 영역 -->
     <Aside :room1="room1" :room2="room2" :room3="room3" :totalUsers="totalUsers"></Aside>
     <!-- <Login :username="username" @dataToParent="dataToChild"/> -->
@@ -171,7 +160,6 @@ function sendMessage() {
     }
   })
 
-  
   console.log('현재방:', room.name)
   socket.emit(`${room.name}`, {
     message: message.userInput,
@@ -252,7 +240,7 @@ li {
   display: flex;
   padding: 20px;
   position: fixed;
-  bottom: 15px;
+  bottom: 5px;
   width: 66%;
 }
 
@@ -291,14 +279,6 @@ li {
 
 /* 대화 메시지(본인/타인) UI */
 
-/* 
-            <span class="content_username">{{ item['username'] }}</span>
-            <span class="content_message">{{ item['messages'] }}</span>
-            <span class="content_createDate">{{ item['date'] }}</span>
-            <span class="content_target">{{ message.target[index] }}</span>
-*/
-
-/* 나 */
 .me {
   display: flex;
   background: rgb(70, 119, 245);
@@ -327,9 +307,10 @@ li {
 
 .me .content_createDate {
   position: absolute;
+  font-size: 1vw;
   color: #4e5057;
   left: 5px;
-  bottom: -24px;
+  bottom: -22px;
 }
 
 /* 상대방 */
@@ -340,7 +321,7 @@ li {
   right: -6%;
   background: #393e50;
   border-radius: 14px;
-  padding: 1.5vw;
+  padding: 1.4vw;
   margin: 35px 0;
   border-bottom-left-radius: 2px;
   animation: others 1 1s ease;
@@ -354,23 +335,24 @@ li {
 
 .others .content_profile {
   position: absolute;
-  left: -60px;
+  left: -45px;
   margin: 0;
   padding: 0;
   font-size: 14px;
-  width: 55px;
+  width: 40px;
 
   top: 50%;
   transform: translateY(-50%);
   color: black;
-  height: 55px;
+  height: 40px;
 }
 
 .others .content_createDate {
   position: absolute;
+  font-size: 1vw;
   right: 8px;
   color: #4e5057;
-  bottom: -24px;
+  bottom: -22px;
 }
 
 .content_profile .content_img {

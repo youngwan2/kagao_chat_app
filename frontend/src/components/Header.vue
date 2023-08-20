@@ -58,7 +58,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 26px;
+  padding: 2.5vw;
   border-radius: 10px;
   box-shadow: 2px 3px 9px 1px rgba(35, 34, 34, 0.23);
 }
