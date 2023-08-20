@@ -11,12 +11,30 @@
             </svg>
           </label>
           <input type="text" id="user_search" />
-          
         </div>
-        <p style="text-align: center; ">유저목록({{ username?.length }}명)</p>
+        <p style="text-align: center">유저목록({{ totalUsers?.length }})</p>
         <ul class="aside_userlist">
-          <li v-for="(info, i) in username" :key="i">
-            <img src="" alt="프로필" class="profile" width="50" height="50" />
+          <h3>자유채팅방({{ room1?.length }})</h3>
+          <li v-for="(info, i) in room1" :key="i">
+            <img src="../assets/user.png" alt="프로필" class="profile" width="50" height="50" />
+            <div>
+              <p style="margin: 15px 0 0 0">{{ info.username }}</p>
+            </div>
+          </li>
+        </ul>
+        <ul class="aside_userlist">
+          <h3>회의채팅방({{ room2?.length }})</h3>
+          <li v-for="(info, i) in room2" :key="i">
+            <img src="../assets/user.png" alt="프로필" class="profile" width="50" height="50" />
+            <div>
+              <p style="margin: 15px 0 0 0">{{ info.username }}</p>
+            </div>
+          </li>
+        </ul>
+        <ul class="aside_userlist">
+          <h3>기타채팅방({{ room3?.length }})</h3>
+          <li v-for="(info, i) in room3" :key="i">
+            <img src="../assets/user.png" alt="프로필" class="profile" width="50" height="50" />
             <div>
               <p style="margin: 15px 0 0 0">{{ info.username }}</p>
             </div>
@@ -37,14 +55,23 @@
 </template>
 
 <script lang="ts">
-import { reactive, ref, toRef } from 'vue'
+import { reactive, ref, toRefs } from 'vue'
+
 export default {
   props: {
-    username: Array,
-    userList:Array
+    room1: Array,
+    room2: Array,
+    room3: Array,
+    totalUsers: Array
   },
+
   setup(props, context) {
-    toRef(props)
+    const { room1, room2, room3, totalUsers } = toRefs(props)
+
+    console.log('1번 방:', room1)
+    console.log('2번 방:', room2)
+    console.log('3번 방:', room3)
+    console.log('전체유저수:', totalUsers)
 
     const displayState = reactive({
       display: false
@@ -68,7 +95,6 @@ export default {
       displayState,
       display,
       context
-      // userInfo
     }
   }
 }
@@ -178,6 +204,11 @@ li {
 .aside .display {
   cursor: pointer;
   border: none;
+  position: sticky;
+  z-index: 10000;
+  min-height: 100%;
+  top: 20px;
+  border-radius: 20px;
   transition: 0.5s;
 }
 
@@ -190,9 +221,10 @@ li {
   border: none;
   transition: 0.5s;
   position: fixed;
-  top: 0;
-  height: 100vh;
   left: 0;
+  top: 0;
+  min-height: 100%;
+  height: 100%;
   border-top-right-radius: 50px;
   border-bottom-right-radius: 50px;
 }

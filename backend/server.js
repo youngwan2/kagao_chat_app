@@ -1,3 +1,6 @@
+const { messageFilter } = require("./js/messageFilter");
+const { roomList } = require("./js/messageFilter");
+
 const express = require("express");
 const app = express();
 const path = require("path");
@@ -12,12 +15,6 @@ const io = new Server(server, {
   ],
 });
 
-app.use(express.static(path.join(__dirname, "dist")));
-app.get("/", (req, res) => {
-  console.log(path.join(__dirname, "/", "dist/"));
-  res.sendFile(path.join(__dirname, "/", "dist", "index.html"));
-});
-
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(__dirname + "/dist"));
@@ -25,51 +22,35 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 let messageList = [];
-const roomList = {
+
+const userList = {
   room1: [],
   room2: [],
   room3: [],
+  userListTotal: [],
 };
 
-const userList = {
-  userListByRoom: {
-    room1: [],
-    room2: [],
-    room3: [],
-  },
-  userList: [],
-};
-
+// 존재하는 방
 const rooms = ["room1", "room2", "room3"];
 
-const messageFilter = (messageList) => {
-  try {
-    switch (messageList[messageList.length - 1].room) {
-      case "room1":
-        roomList.room1[roomList.room1.length] =
-          messageList[messageList.length - 1];
-        break;
-      case "room2":
-        roomList.room2[roomList.room2.length] =
-          messageList[messageList.length - 1];
-        break;
-      case "room3":
-        roomList.room3[roomList.room3.length] =
-          messageList[messageList.length - 1];
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 io.on("connection", (socket) => {
+  userList.userListTotal.push(socket.client.id);
 
-  userList.userList.push(socket.client.id);
-
+  // 방 선택
   socket.on("roomChoice", (room) => {
-    socket.on(`${rooms[room]}`, (messages) => {
+    userList[`${rooms[room.index]}`].push({
+      userId: socket.client.id,
+      username: room.username,
+    });
+    console.log(userList);
+
+    socket.emit("access", userList);
+    socket.emit("uid", socket.client.id);
+
+    // 선택된 방에 대한 메시지를 받음
+    socket.on(`${rooms[room.index]}`, (messages) => {
       // 유저가 선택한 방으로 가입시킨다.
-      socket.join(rooms[room]);
+      socket.join(rooms[room.index]);
 
       // 유저가 전송한 메시지를 서버단의 메시지 배열에 저장한다.
       messageList.push({
@@ -83,28 +64,28 @@ io.on("connection", (socket) => {
       // 채팅방 별로 유저를 구분해주는 함수
       messageFilter(messageList);
 
-      io.to(`${rooms[room]}`).emit(
-        `${rooms[room]}`,
-        roomList[`${rooms[room]}`]
-      );
+      io.to(`${rooms[room.index]}`).emit(`${rooms[room.index]}`, {
+        content: roomList[`${rooms[room.index]}`],
+        userList: userList[`${rooms[room.index]}`],
+      });
+    });
+
+    // 각 방별로 구분된 유저의 메시지가 담긴 배열을 브라우저로 전송
+    socket.on("disconnect", () => {
+      userList.userListTotal = userList.userListTotal.filter((user, i) => {
+        return user !== socket.client.id;
+      });
+      userList[`${rooms[room.index]}`] = userList[
+        `${rooms[room.index]}`
+      ].filter((data, i) => {
+        console.log(data.userId);
+        return data.userId !== socket.client.id;
+      });
+      socket.emit("access", userList);
     });
   });
-
-  // 각 방별로 구분된 유저의 메시지가 담긴 배열을 브라우저로 전송
-  socket.on("disconnect", () => {
-    userList.userList = userList.userList.filter((user, i) => {
-      return user !== socket.client.id;
-    });
- 
-    
-  });
-
-  socket.emit('access',userList.userList)
 });
-
-
 
 server.listen(PORT, () => {
   console.log(PORT, "열림");
 });
-

@@ -1,8 +1,18 @@
 <template>
   <div class="container">
-    <h1 style="text-align: center; background-color: black; position: fixed; width: 100%; bottom: 6rem;">{{userList }}</h1>
+    <h1
+      style="
+        text-align: center;
+        background-color: black;
+        position: fixed;
+        width: 100%;
+        bottom: 6rem;
+      "
+    >
+      현재 동시접속자는 {{ totalUsers.length }}명 입니다.
+    </h1>
     <!-- 좌측 유저 목록 및 검색 영역 -->
-    <Aside :username="message.uid" :userList="userList"></Aside>
+    <Aside :room1="room1" :room2="room2" :room3="room3" :totalUsers="totalUsers"></Aside>
     <!-- <Login :username="username" @dataToParent="dataToChild"/> -->
 
     <!-- 우측 헤더 영역 -->
@@ -93,18 +103,12 @@ type Message = {
   messages: dType[]
   userInput: string
   target: string[]
-  uid: any[]
-  accessor:string[],
-  userList:string[]
 }
 
 const message = reactive<Message>({
   messages: [] as any,
   userInput: '',
-  target: [],
-  uid: [],
-  accessor:[],
-  userList:[]
+  target: []
 })
 
 const room = reactive({
@@ -117,7 +121,10 @@ const userState = reactive({
   disabled: true
 })
 
-const userList =ref<string[]>([])
+const room1 = ref('')
+const room2 = ref('')
+const room3 = ref('')
+const totalUsers = ref('')
 
 const userAlarm = ref('alarm_off')
 
@@ -134,22 +141,37 @@ function roomChoice(roomInfo: { index: number; name: string }) {
   room.index = roomInfo.index
   room.name = roomInfo.name
 
-  socket.emit('roomChoice', room.index)
+  socket.emit('roomChoice', { index: room.index, username: username.value })
 }
 
 // 소켓을 종료하는 함수
-function exit(){
+function exit() {
   socket.close()
 }
 
-socket.on('access',(user)=>{
-  userList.value=user
-  console.log(userList.value)
-
+socket.on('access', (user) => {
+  if (user) {
+    room1.value = user['room1']
+    room2.value = user['room2']
+    room3.value = user['room3']
+    totalUsers.value = user['userListTotal']
+    console.log('유저:', user)
+  }
 })
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
+  socket.on('access', (user) => {
+    if (user) {
+      room1.value = user['room1']
+      room2.value = user['room2']
+      room3.value = user['room3']
+      totalUsers.value = user['userListTotal']
+      console.log('유저:', user)
+    }
+  })
+
+  
   console.log('현재방:', room.name)
   socket.emit(`${room.name}`, {
     message: message.userInput,
@@ -157,11 +179,10 @@ function sendMessage() {
     group: room.name
   })
 
-  socket.on(`${room.name}`, (content) => {
-    console.log('서버에서 받은:', content)
-    message.messages = content
-    createUid(content) // 중복된 id를 제거하고 uid를 생성하는 함수
-    targetUser(content) // 타겟이 되는 유저를 분별하기 위한 함수
+  socket.on(`${room.name}`, (userInfo) => {
+    console.log('서버에서 받은:', userInfo.content)
+    message.messages = userInfo.content
+    targetUser(userInfo.content) // 타겟이 되는 유저를 분별하기 위한 함수
     isEnter()
   })
 }
@@ -188,25 +209,6 @@ function onModal() {
     modalState.value = 'modal_off'
   }
 }
-// Uid를 생성하는 함수
-function createUid(content: dType[]) {
-  const uid: string[] = []
-  message.uid = content.filter((d: dType, i) => {
-    uid.push(content[i].id)
-    // id 배열에서 유저의 id가 존재할 때 처음 등장한 id에 해당하는 요소만
-    // 필터링하여 message.uid의 값으로 할당한다.
-    return uid.indexOf(d.id) === i
-  })
-
-  message.userList = message.uid.map((data,i)=>{
-       return data.id
-  })
-
-  console.log(message.userList)
-
-  console.log(message.accessor)
-}
-
 
 // 로그인 함수로 로그인 시 서버와 소켓을 연결한다.
 function login() {
@@ -383,7 +385,7 @@ li {
 /* 로그인 모달 창 */
 .login_modal {
   position: fixed;
-  z-index: 1000;
+  z-index: 10000;
   visibility: hidden;
   box-shadow: 10px 10px 5px 2px rgba(0, 0, 0, 0.28);
   background: #6785ff;
