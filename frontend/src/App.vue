@@ -1,16 +1,5 @@
 <template>
   <div class="container">
-    <h1
-      style="
-        text-align: center;
-        background-color: black;
-        position: fixed;
-        width: 100%;
-        bottom: 6rem;
-      "
-    >
-      현재 동시접속자는 {{ totalUsers.length }}명 입니다.
-    </h1>
     <!-- 좌측 유저 목록 및 검색 영역 -->
     <Aside :room1="room1" :room2="room2" :room3="room3" :totalUsers="totalUsers"></Aside>
     <!-- <Login :username="username" @dataToParent="dataToChild"/> -->
@@ -105,10 +94,11 @@ type Message = {
   target: string[]
 }
 
+// 서버로 부터 받은 메시지목록, 사용자의 입력값 등이 저장된다.
 const message = reactive<Message>({
   messages: [] as any,
   userInput: '',
-  target: []
+  target: [] // 상대방인지 나인지 구분된 결과 목록이 저장된다.
 })
 
 const room = reactive({
@@ -149,30 +139,19 @@ function exit() {
   socket.close()
 }
 
+// 서버로 부터 접속한 사용자 정보를 받는다.
 socket.on('access', (user) => {
+  // user 가 존재한다면 각 방별로 유저를 구분한다.
   if (user) {
     room1.value = user['room1']
     room2.value = user['room2']
     room3.value = user['room3']
-    totalUsers.value = user['userListTotal']
-    console.log('유저:', user)
+    totalUsers.value = user['userListTotal'] // 서버에 접속된 모든 유저 목록이 저장된다.
   }
 })
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
-  socket.on('access', (user) => {
-    if (user) {
-      room1.value = user['room1']
-      room2.value = user['room2']
-      room3.value = user['room3']
-      totalUsers.value = user['userListTotal']
-      console.log('유저:', user)
-    }
-  })
-
-  
-  console.log('현재방:', room.name)
   socket.emit(`${room.name}`, {
     message: message.userInput,
     username: username.value,
@@ -180,7 +159,6 @@ function sendMessage() {
   })
 
   socket.on(`${room.name}`, (userInfo) => {
-    console.log('서버에서 받은:', userInfo.content)
     message.messages = userInfo.content
     targetUser(userInfo.content) // 타겟이 되는 유저를 분별하기 위한 함수
     isEnter()
@@ -189,6 +167,8 @@ function sendMessage() {
 
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
 function targetUser(content: dType[]) {
+  console.log(totalUsers.value)
+  console.log(content)
   const map = content.map((data: dType) => {
     const targetUser = data.username === username.value ? 'me' : 'others'
     return targetUser
@@ -252,7 +232,7 @@ li {
   display: flex;
   padding: 20px;
   position: fixed;
-  bottom: 15px;
+  bottom: 5px;
   width: 66%;
 }
 
@@ -291,14 +271,6 @@ li {
 
 /* 대화 메시지(본인/타인) UI */
 
-/* 
-            <span class="content_username">{{ item['username'] }}</span>
-            <span class="content_message">{{ item['messages'] }}</span>
-            <span class="content_createDate">{{ item['date'] }}</span>
-            <span class="content_target">{{ message.target[index] }}</span>
-*/
-
-/* 나 */
 .me {
   display: flex;
   background: rgb(70, 119, 245);
@@ -327,9 +299,10 @@ li {
 
 .me .content_createDate {
   position: absolute;
+  font-size: 1vw;
   color: #4e5057;
   left: 5px;
-  bottom: -24px;
+  bottom: -22px;
 }
 
 /* 상대방 */
@@ -340,7 +313,7 @@ li {
   right: -6%;
   background: #393e50;
   border-radius: 14px;
-  padding: 1.5vw;
+  padding: 1.4vw;
   margin: 35px 0;
   border-bottom-left-radius: 2px;
   animation: others 1 1s ease;
@@ -354,23 +327,24 @@ li {
 
 .others .content_profile {
   position: absolute;
-  left: -60px;
+  left: -45px;
   margin: 0;
   padding: 0;
   font-size: 14px;
-  width: 55px;
+  width: 40px;
 
   top: 50%;
   transform: translateY(-50%);
   color: black;
-  height: 55px;
+  height: 40px;
 }
 
 .others .content_createDate {
   position: absolute;
+  font-size: 1vw;
   right: 8px;
   color: #4e5057;
-  bottom: -24px;
+  bottom: -22px;
 }
 
 .content_profile .content_img {

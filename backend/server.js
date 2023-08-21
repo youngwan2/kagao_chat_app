@@ -15,14 +15,17 @@ const io = new Server(server, {
   ],
 });
 
-const PORT = process.env.PORT || 3000;
-
 app.use(express.static(__dirname + "/dist"));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
+
+/* 클라이언트에서 받은 메시지를 일단 1차로 배열로 저장 후
+해당 리스트를 인자로 받는 별도의 필터 함수를 활용하여
+방별로 메시지를 구분해서 뿌릴 때 사용함. */
 let messageList = [];
 
+/* 각 방별 유저리스트 정보를 담는 객체 */
 const userList = {
   room1: [],
   room2: [],
@@ -38,19 +41,25 @@ io.on("connection", (socket) => {
 
   // 방 선택
   socket.on("roomChoice", (room) => {
+    socket.join(rooms[room.index]); // 선택된 방으로 가입
+
+    // 선택된 방으로 접속한 유저 정보를 저장
     userList[`${rooms[room.index]}`].push({
       userId: socket.client.id,
       username: room.username,
     });
-    console.log(userList);
-
+    // 해당 유저 정보를 모든 방으로 전송
     socket.emit("access", userList);
-    socket.emit("uid", socket.client.id);
+
+    // 각 방에 대한 유저 정보를 업데이트 하려면 개별 방에 유저정보를 한 번 더 보내줘야 한다(현재 까지는 이게 최선).
+    socket.to(`${rooms}`).emit("access", userList);
+    socket.to(`${rooms[room.index]}`).emit("access", userList);
 
     // 선택된 방에 대한 메시지를 받음
     socket.on(`${rooms[room.index]}`, (messages) => {
       // 유저가 선택한 방으로 가입시킨다.
-      socket.join(rooms[room.index]);
+      // socket.emit("access", userList);
+      socket.to(`${rooms[room.index]}`).emit("access", userList);
 
       // 유저가 전송한 메시지를 서버단의 메시지 배열에 저장한다.
       messageList.push({
@@ -82,10 +91,14 @@ io.on("connection", (socket) => {
         return data.userId !== socket.client.id;
       });
       socket.emit("access", userList);
+      socket.to(`${rooms}`).emit("access", userList);
+      socket.to(`${rooms[room.index]}`).emit("access", userList);
     });
   });
 });
 
+/* 포트 연결 */
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(PORT, "열림");
 });

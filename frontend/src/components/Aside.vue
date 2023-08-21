@@ -12,7 +12,7 @@
           </label>
           <input type="text" id="user_search" />
         </div>
-        <p style="text-align: center">유저목록({{ totalUsers?.length }})</p>
+        <p style="text-align: center">유저목록</p>
         <ul class="aside_userlist">
           <h3>자유채팅방({{ room1?.length }})</h3>
           <li v-for="(info, i) in room1" :key="i">
@@ -71,7 +71,10 @@ export default {
     console.log('1번 방:', room1)
     console.log('2번 방:', room2)
     console.log('3번 방:', room3)
-    console.log('전체유저수:', totalUsers)
+    console.log(
+      '전체유저수:',
+      room1.value?.length || '0' + room2.value?.length || '0' + room3.value?.length || '0'
+    )
 
     const displayState = reactive({
       display: false
@@ -100,6 +103,9 @@ export default {
 }
 </script>
 <style scoped>
+h3 {
+  padding: 0 10px;
+}
 /* 컴포넌트 전체 컨테이너 */
 .outer_container {
   opacity: 0.9;
