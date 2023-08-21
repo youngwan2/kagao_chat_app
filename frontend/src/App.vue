@@ -94,10 +94,11 @@ type Message = {
   target: string[]
 }
 
+// 서버로 부터 받은 메시지목록, 사용자의 입력값 등이 저장된다.
 const message = reactive<Message>({
   messages: [] as any,
   userInput: '',
-  target: []
+  target: [] // 상대방인지 나인지 구분된 결과 목록이 저장된다.
 })
 
 const room = reactive({
@@ -138,29 +139,19 @@ function exit() {
   socket.close()
 }
 
+// 서버로 부터 접속한 사용자 정보를 받는다.
 socket.on('access', (user) => {
+  // user 가 존재한다면 각 방별로 유저를 구분한다.
   if (user) {
     room1.value = user['room1']
     room2.value = user['room2']
     room3.value = user['room3']
-    totalUsers.value = user['userListTotal']
-    console.log('유저:', user)
+    totalUsers.value = user['userListTotal'] // 서버에 접속된 모든 유저 목록이 저장된다.
   }
 })
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
-  socket.on('access', (user) => {
-    if (user) {
-      room1.value = user['room1']
-      room2.value = user['room2']
-      room3.value = user['room3']
-      totalUsers.value = user['userListTotal']
-      console.log('유저:', user)
-    }
-  })
-
-  console.log('현재방:', room.name)
   socket.emit(`${room.name}`, {
     message: message.userInput,
     username: username.value,
@@ -168,7 +159,6 @@ function sendMessage() {
   })
 
   socket.on(`${room.name}`, (userInfo) => {
-    console.log('서버에서 받은:', userInfo.content)
     message.messages = userInfo.content
     targetUser(userInfo.content) // 타겟이 되는 유저를 분별하기 위한 함수
     isEnter()
@@ -177,6 +167,8 @@ function sendMessage() {
 
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
 function targetUser(content: dType[]) {
+  console.log(totalUsers.value)
+  console.log(content)
   const map = content.map((data: dType) => {
     const targetUser = data.username === username.value ? 'me' : 'others'
     return targetUser
