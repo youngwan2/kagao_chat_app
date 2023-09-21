@@ -16,7 +16,7 @@ https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/
 - socket.io
 #### 백엔드(및 개발환경)
 - node.js(express)
-- 비쥬얼 스튜디오 코드
+- window10 환경의 비쥬얼 스튜디오 코드
 
 ## 주요기능
 #### 방 별 채팅기능
