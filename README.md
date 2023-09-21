@@ -10,7 +10,7 @@
 ## 배포 URL
 https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/
 
-## 사용 라이브러리 및 프레임워크
+## 사용 라이브러리 및 프레임워크(기술스택)
 ### 프론트엔드
 - Vue3.js(옵션 API)
 - socket.io
