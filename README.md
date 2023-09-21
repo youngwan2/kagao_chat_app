@@ -14,7 +14,7 @@ https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/
 #### 프론트엔드
 - Vue3.js(옵션 API)
 - socket.io
-#### 백엔드
+#### 백엔드(및 개발환경)
 - node.js(express)
 
 ## 주요기능
