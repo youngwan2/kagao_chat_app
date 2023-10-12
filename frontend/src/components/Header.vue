@@ -60,7 +60,7 @@ export default {
   justify-content: space-between;
   padding: 2.5vw;
   border-radius: 10px;
-  box-shadow: 2px 3px 9px 1px rgba(35, 34, 34, 0.23);
+  box-shadow: inset -3px -3px 5px black, inset 1px 1px 3px rgb(21, 20, 20);
 }
 
 .profile {

@@ -2,17 +2,7 @@
   <div class="outer_container">
     <aside class="aside" :class="display">
       <div style="width: 100%; height: 100vh">
-        <div class="aside_search">
-          <label for="user_search"
-            ><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
-              <path
-                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
-              />
-            </svg>
-          </label>
-          <input type="text" id="user_search" />
-        </div>
-        <p style="text-align: center">유저목록</p>
+        <h2 style="text-align: center; margin-top: 3rem">유저목록</h2>
         <ul class="aside_userlist">
           <h3>자유채팅방({{ room1?.length }})</h3>
           <li v-for="(info, i) in room1" :key="i">
@@ -41,7 +31,14 @@
           </li>
         </ul>
       </div>
-      <button class="display" @click="offDisplay">{{ '<<' }}</button>
+      <button class="display" @click="offDisplay">
+        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
+          <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+          <path
+            d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+          />
+        </svg>
+      </button>
     </aside>
     <button v-show="!displayState.display" class="display outer_display" @click="onDisplay">
       <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
@@ -55,7 +52,7 @@
 </template>
 
 <script lang="ts">
-import { reactive, ref, toRefs } from 'vue'
+import { reactive, ref } from 'vue'
 
 export default {
   props: {
@@ -65,17 +62,8 @@ export default {
     totalUsers: Array
   },
 
-  setup(props, context) {
-    const { room1, room2, room3, totalUsers } = toRefs(props)
-
-    console.log('1번 방:', room1)
-    console.log('2번 방:', room2)
-    console.log('3번 방:', room3)
-    console.log(
-      '전체유저수:',
-      room1.value?.length || '0' + room2.value?.length || '0' + room3.value?.length || '0'
-    )
-
+  setup() {
+    const totalUserCount = ref(0)
     const displayState = reactive({
       display: false
     })
@@ -97,7 +85,7 @@ export default {
       onDisplay,
       displayState,
       display,
-      context
+      totalUserCount
     }
   }
 }
@@ -190,6 +178,7 @@ li {
 
 .aside_userlist li {
   margin: 10px 13px;
+  box-shadow: inset -2px -2px 5px rgb(21, 21, 21);
   padding: 20px 0;
   border-radius: 15px;
   background: #3a3e56;
@@ -210,17 +199,22 @@ li {
 .aside .display {
   cursor: pointer;
   border: none;
+  padding: 0 8px;
+  box-shadow:
+    inset -1px -1px 5px black,
+    inset 3px 3px 5px rgb(61, 59, 59);
   position: sticky;
   z-index: 10000;
   min-height: 100%;
   top: 20px;
-  border-radius: 20px;
+  font-weight: 700;
+  border-radius: 10px;
   transition: 0.5s;
 }
 
-.aside .display:hover {
-  box-shadow: 0 0 5px 2px white;
-  font-size: 16px;
+
+.aside .display svg {
+  transform: rotate(180deg);
 }
 
 .outer_display {
@@ -228,6 +222,9 @@ li {
   transition: 0.5s;
   position: fixed;
   left: 0;
+  box-shadow:
+    inset -1px -1px 5px black,
+    inset 3px 3px 5px rgb(61, 59, 59);
   top: 0;
   min-height: 100%;
   height: 100%;
@@ -236,8 +233,7 @@ li {
 }
 
 .outer_display:hover {
-  font-size: 19px;
+  font-size: 25px;
   cursor: pointer;
-  box-shadow: 0 0 5px 2px white;
 }
 </style>

@@ -22,12 +22,14 @@ export default {
     const rooms = ['room1', 'room2', 'room3']
     const roomName = ['자유', '회의', '기타']
     const currentRoomIndex = ref(0)
-    const closeState = ref(true)
+    const closeState = ref(true) // 방선택 모달창의 활성화 여부를 체크
 
+    // 사용자가 방을 선택하면 해당 방의 인덱스 번호와 방 이름을 객체에 담아서
+    // 부모 컴포넌트인 App.vue 로 데이터를 전달한다.
     const roomSwitch = (i: number) => {
       context.emit('choice', { index: i, name: rooms[i] })
       currentRoomIndex.value = i
-      windowClose()
+      windowClose() // ==> 방선택 모달창을 닫는다
     }
 
     const windowClose = () => {
@@ -36,7 +38,6 @@ export default {
 
     const roomLeave =()=>{
       context.emit('roomLeave', currentRoomIndex.value)
-      
       location.href='/'
     }
     return {
@@ -128,9 +129,19 @@ ul li:hover::before {
 .room_leave {
   position: fixed;
   z-index: 100000;
-  right: 5px;
-  padding: 2px 6px;
-  top: 2.5rem;
+  right: 1rem;
+  border: none;
+  border-radius: 10px;
+  box-shadow: inset -2px -2px 5px rgb(11, 11, 12);
+  background: rgb(70, 70, 86);
+  color:white;
+  padding:8px 10px;
+  top: 2rem;
+}
+
+.room_leave:hover {
+  cursor: pointer;
+  background: rgb(106, 105, 105);
 }
 
 .room_icon_inner {

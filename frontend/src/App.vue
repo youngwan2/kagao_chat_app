@@ -37,7 +37,7 @@
           <li v-for="(item, index) in message.messages" :key="index" :class="message.target[index]">
             <div class="content_profile">
               <div class="content_img"></div>
-              <span style="color: gray">{{ item.username }}</span>
+              <span style="padding-top: 2px;color: gray; font-size: 13px; display: inline-block; line-height: 1;">{{ item.username }}</span>
             </div>
             <span class="content_message">{{ item.messages }}</span>
             <span class="content_createDate">{{ item.date }}</span>
@@ -47,7 +47,12 @@
 
       <!-- 유저 메시지 입력창 폼 -->
       <form @submit.prevent class="user_input_form">
-        <input type="text" v-model="message.userInput" v-show="userState.disabled" />
+        <input
+          type="text"
+          v-model="message.userInput"
+          v-show="userState.disabled"
+          placeholder="메시지를 입력해주세요."
+        />
         <button class="submit_btn" @click="sendMessage" v-show="userState.disabled">
           <svg
             style="fill: white"
@@ -139,23 +144,23 @@ function exit() {
   socket.close()
 }
 
-// 서버로 부터 접속한 사용자 정보를 받는다.
+// 서버로 부터 접속한 유저 명단을 받아온다.
 socket.on('access', (user) => {
-  // user 가 존재한다면 각 방별로 유저를 구분한다.
+  // 방병로 유저를 분리한다.
   if (user) {
+    console.log(user)
     room1.value = user['room1']
     room2.value = user['room2']
     room3.value = user['room3']
-    totalUsers.value = user['userListTotal'] // 서버에 접속된 모든 유저 목록이 저장된다.
   }
 })
 
 // 서버에 메시지를 전송하는 함수
 function sendMessage() {
   socket.emit(`${room.name}`, {
-    message: message.userInput,
-    username: username.value,
-    group: room.name
+    message: message.userInput, // 메시지
+    username: username.value, // 유저이름
+    group: room.name // 소속된 방
   })
 
   socket.on(`${room.name}`, (userInfo) => {
@@ -167,15 +172,13 @@ function sendMessage() {
 
 // 해당 유저가 본인인지 상대방인지 구분하는 함수
 function targetUser(content: dType[]) {
-  console.log(totalUsers.value)
-  console.log(content)
   const map = content.map((data: dType) => {
     const targetUser = data.username === username.value ? 'me' : 'others'
     return targetUser
   })
   message.target = map
 
-  const timeout = setTimeout(() => {
+  setTimeout(() => {
     document.querySelector('.main')?.scrollTo({ top: 10000000 })
     message.userInput = ''
   }, 10)
@@ -229,6 +232,7 @@ li {
 .user_input_form {
   justify-content: center;
   border-radius: 20px;
+  align-items: center;
   display: flex;
   padding: 20px;
   position: fixed;
@@ -237,35 +241,44 @@ li {
 }
 
 .user_input_form input {
-  padding: 20px;
+  padding: 23px 20px;
   background: #303346;
   width: 80%;
+  min-width: 200px;
+  box-shadow:
+    inset -2px -2px 5px black,
+    inset 1px 1px 1px rgb(32, 30, 30);
   transition: 0.5s;
   border: none;
   border-radius: 10px;
 }
 
 .user_input_form input:focus {
-  color: white;
+  color: black;
   outline: none;
-  box-shadow: inset 0 0 3px 1px rgba(16, 29, 71, 0.778);
+  background: #5577ff;
+}
+
+.user_input_form input:focus::placeholder {
+  color: white;
 }
 
 /* 전송버튼 */
 .user_input_form button {
   background: #6785ff;
-  box-shadow: inset 0 0 0 0;
+  box-shadow:
+    inset -2px -2px 5px rgb(2, 2, 30),
+    inset 2px 2px 5px rgb(108, 111, 198);
   font-size: 18px;
   border: none;
-  border-bottom-right-radius: 10px;
-  border-top-right-radius: 10px;
+  border-radius: 10px;
+  max-height: 60px;
   margin: 0 10px;
   transition: 0.5s;
-  padding: 13.5px 15px 17.5px 15px;
+  padding: 16.5px 18px 16.5px 18px;
 }
 
 .user_input_form button:hover {
-  box-shadow: inset 300px -300px 5px 2px rgb(49, 96, 213);
   cursor: pointer;
 }
 
@@ -279,10 +292,12 @@ li {
   flex-direction: row-reverse;
   right: -25%;
   padding: 1.5vw;
-  border-radius: 14px;
+  border-radius: 10px;
   margin: 35px 0;
   border-end-end-radius: 2px;
-  box-shadow: 5px 4px 5px 2px rgba(45, 44, 44, 0.295);
+  box-shadow:
+    inset -2px -2px 5px black,
+    inset 1px 1px 2px rgb(51, 48, 48);
   animation: appear 1 1s ease;
 }
 
@@ -299,18 +314,22 @@ li {
 
 .me .content_createDate {
   position: absolute;
-  font-size: 1vw;
-  color: #4e5057;
+  font-size: 10px;
+  color: #808186;
   left: 5px;
-  bottom: -22px;
+  bottom: -16px;
 }
 
 /* 상대방 */
 .others {
   display: flex;
   max-width: 70%;
+  align-items: center;
   position: relative;
   right: -6%;
+  box-shadow:
+    inset -2px -2px 5px black,
+    inset 1px 1px 2px rgb(51, 48, 48);
   background: #393e50;
   border-radius: 14px;
   padding: 1.4vw;
@@ -331,20 +350,19 @@ li {
   margin: 0;
   padding: 0;
   font-size: 14px;
-  width: 40px;
-
+  width: 35px;
   top: 50%;
   transform: translateY(-50%);
   color: black;
-  height: 40px;
+  height: 35px;
 }
 
 .others .content_createDate {
   position: absolute;
-  font-size: 1vw;
+  font-size:10px;
   right: 8px;
-  color: #4e5057;
-  bottom: -22px;
+  color: #93959b;
+  bottom: -17px;
 }
 
 .content_profile .content_img {
@@ -359,7 +377,7 @@ li {
 /* 로그인 모달 창 */
 .login_modal {
   position: fixed;
-  z-index: 10000;
+  z-index: 1000000000;
   visibility: hidden;
   box-shadow: 10px 10px 5px 2px rgba(0, 0, 0, 0.28);
   background: #6785ff;
@@ -404,6 +422,7 @@ li {
   transition: 0.5s ease-in-out;
   padding: 15px 5vw;
   border: none;
+  min-width: 280px;
   border-radius: 10px;
   margin-top: 0.5rem;
 }
