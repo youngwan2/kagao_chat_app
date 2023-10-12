@@ -81,7 +81,7 @@ import Aside from './components/Aside.vue'
 import Header from './components/Header.vue'
 import RoomVue from './components/RoomVue.vue'
 
-const socket = io('http://localhost:3000')
+const socket =  io(`${ 'http://localhost:3000'}`)
 
 const username = ref('')
 const modalState = ref('modal_on')
