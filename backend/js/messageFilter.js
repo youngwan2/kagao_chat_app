@@ -4,7 +4,7 @@ const roomList = {
     room3: [],
   };
 
-
+// 각 방별로 유저를 분리한다.
 const messageFilter = (messageList) => {
   try {
     switch (messageList[messageList.length - 1].room) {
