@@ -1,7 +1,7 @@
 ## 프로젝트명
 ### Cagao Chat App
 <p align="center">
-<img src="https://github.com/youngwan2/kagao_chat_app/assets/107159871/784c2d14-56a8-4216-ae7e-445660f414c4" alt="preview_back" width="550" height="500">   
+  <img src="https://github.com/youngwan2/kagao_chat_app/assets/107159871/7572d016-6d2c-4891-bc27-939a72ffc59e" alt="preview_back" width="550" height="500">   
 </p>
 
 ## 개요
