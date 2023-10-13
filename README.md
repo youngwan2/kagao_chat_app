@@ -9,7 +9,7 @@
 - 전체적으로 입장 가능한 방은 3개가 존재하며, 로그인한 유저를 구분하기 위해 입장 전에 닉네임을 입력하게 하였습니다. 이를 기반으로 상대방과 동일한 방에 접속하게 되면 실시간 채팅이 가능하도록 만들어봤습니다. 최대한 부드러운 인터랙션을 통해 사용자가 자연스러운 채팅 서비스를 이용할 수 있도록 최대한 신경썼습니다.
 
 ## 배포 URL
-https://port-0-kagao-chat-app-eu1k2lll9au5zx.sel3.cloudtype.app/
+https://port-0-kagao-chat-app-12fhqa2blnnwlafj.sel5.cloudtype.app/
 
 ## 사용 라이브러리 및 프레임워크(기술스택)
 #### 프론트엔드
