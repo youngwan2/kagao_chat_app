@@ -1,3 +1,5 @@
+**[참고] 기능을 확장할 예정입니다.**
+
 ## 프로젝트명
 ### Cagao Chat App
 <p align="center">
